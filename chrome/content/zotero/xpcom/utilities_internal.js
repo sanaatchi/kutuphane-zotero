@@ -1737,7 +1737,7 @@ Zotero.Utilities.Internal = {
 			}
 			menuitem.setAttribute("value", value);
 			menuitem.setAttribute("image", icon);
-			menuitem.setAttribute("disabled", disabled);
+			menuitem.toggleAttribute("disabled", disabled);
 			menuitem.addEventListener('command', command);
 			menuitem.classList.add('menuitem-iconic');
 			return menuitem;
