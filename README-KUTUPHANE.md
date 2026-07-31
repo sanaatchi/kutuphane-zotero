@@ -19,16 +19,25 @@ Bu depo, resmi [zotero/zotero](https://github.com/zotero/zotero) kaynağının
 
 ## Yerel kurulum (özet)
 
+Windows (Git Bash) için PATH’e ekleyin: MSYS2 (`C:/msys64/usr/bin` → zip/rsync/wget),
+7-Zip, `app/xulrunner/bin` (rcedit).
+
 ```bash
-# zaten clone edildiyse:
 git remote -v   # origin = sanaatchi/kutuphane-zotero, upstream = zotero/zotero
-git lfs install
-git lfs pull
+git lfs install && git lfs pull
 npm i
-# Windows: Git Bash / WSL önerilir
-app/scripts/check_requirements
+app/scripts/fetch_rcedit
+export PATH="/c/msys64/usr/bin:/c/Program Files/7-Zip:$(pwd)/app/xulrunner/bin:$PATH"
+export NODE_OPTIONS=--openssl-legacy-provider
+app/scripts/check_requirements   # dağıtım/NSIS/AWS FAIL olabilir — custom build için OK
 app/scripts/build_and_run -r
 ```
+
+**Windows notları (fork yamaları):** `js-build/reader.js` ve `note-editor.js`
+içinde shell `mv …/*` yerine Node `fs.move` kullanılır (Git Bash glob kırılması).
+
+**Ürün yolu:** Günlük kullanım ve eklenti geliştirme için stok/beta Zotero yeterlidir.
+Bu fork chrome deneyi ve özel staging içindir; `arsiv_app` buraya gömülmez.
 
 Belge: https://www.zotero.org/support/dev/client_coding/building_the_desktop_app
 

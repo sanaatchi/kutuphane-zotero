@@ -1,4 +1,5 @@
 'use strict';
+// @ajan: cursor · @etiket: kutuphane-zotero, windows-build, note-editor
 
 const fs = require('fs-extra');
 const path = require('path');
@@ -26,14 +27,20 @@ async function getZoteroNoteEditor(signatures) {
 			await fs.ensureDir(targetDir);
 			await fs.ensureDir(tmpDir);
 
+			const targetPosix = targetDir.replace(/\\/g, '/');
+			const tmpPosix = tmpDir.replace(/\\/g, '/');
 			await exec(
-				`cd ${tmpDir}`
+				`cd "${tmpPosix}"`
 				+ ` && (test -f ${filename} || curl -f ${url} -o ${filename})`
-				+ ` && unzip ${filename} zotero/* -d ${targetDir}`
-				+ ` && mv ${path.join(targetDir, 'zotero', '*')} ${targetDir}`
+				+ ` && unzip ${filename} zotero/* -d "${targetPosix}"`
 			);
-
-			await fs.remove(path.join(targetDir, 'zotero'));
+			const nested = path.join(targetDir, 'zotero');
+			if (await fs.pathExists(nested)) {
+				for (const name of await fs.readdir(nested)) {
+					await fs.move(path.join(nested, name), path.join(targetDir, name), { overwrite: true });
+				}
+				await fs.remove(nested);
+			}
 		}
 		catch (e) {
 			console.error(e);

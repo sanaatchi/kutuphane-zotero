@@ -1,4 +1,5 @@
 'use strict';
+// @ajan: cursor · @etiket: kutuphane-zotero, windows-build, reader
 
 const fs = require('fs-extra');
 const path = require('path');
@@ -26,14 +27,22 @@ async function getReader(signatures) {
 			await fs.ensureDir(targetDir);
 			await fs.ensureDir(tmpDir);
 
+			// Use forward slashes in shell paths (Windows Git Bash / MSYS).
+			const targetPosix = targetDir.replace(/\\/g, '/');
+			const tmpPosix = tmpDir.replace(/\\/g, '/');
 			await exec(
-				`cd ${tmpDir}`
+				`cd "${tmpPosix}"`
 				+ ` && (test -f ${filename} || curl -f ${url} -o ${filename})`
-				+ ` && unzip ${filename} zotero/* -d ${targetDir}`
-				+ ` && mv ${path.join(targetDir, 'zotero', '*')} ${targetDir}`
+				+ ` && unzip ${filename} zotero/* -d "${targetPosix}"`
 			);
-
-			await fs.remove(path.join(targetDir, 'zotero'));
+			// Node move — shell `mv .../*` breaks on Windows paths.
+			const nested = path.join(targetDir, 'zotero');
+			if (await fs.pathExists(nested)) {
+				for (const name of await fs.readdir(nested)) {
+					await fs.move(path.join(nested, name), path.join(targetDir, name), { overwrite: true });
+				}
+				await fs.remove(nested);
+			}
 		}
 		catch (e) {
 			if (!e.message?.includes('The requested URL returned error: 403')) {
